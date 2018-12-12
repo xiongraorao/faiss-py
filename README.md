@@ -48,7 +48,7 @@
 返回示例：
 
 ``` json
-{'time_used': 99, 'rtn': 0, 'message': 'vectors added successfully'}
+{"time_used": 99, "rtn": 0, "message": "vectors added successfully"}
 ```
 
 ## 向量查找
