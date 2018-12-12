@@ -1,0 +1,7 @@
+{
+  "dim": 256,
+  "usegpu": false,
+  "searchFactory": "IDMap,Flat",
+  "host": "0.0.0.0",
+  "port": 2344
+}
