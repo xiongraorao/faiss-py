@@ -28,6 +28,12 @@ def delete():
     response = requests.post(url, data=json.dumps(data), headers=headers)
     print(response.json())
 
+def reset():
+    url = base_url + '/reset'
+    response = requests.get(url)
+    print(response.json())
+
 add()
 search()
 delete()
+reset()

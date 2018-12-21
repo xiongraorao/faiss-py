@@ -15,14 +15,15 @@ config = {}
 with open('config.json') as f:
     config = json.load(f)
 print('======== system config ========')
-for key,value in config.items():
-    logger.info(key,":", value)
+for key, value in config.items():
+    logger.info(key, ":", value)
 logger.info('system start time: ', time_to_date(time.time()))
 print('======== system config ========')
 
 index = faiss.IndexFlatIP(config['dim'])
 index = faiss.IndexIDMap(index)
 logger.info('is trained:', index.is_trained)
+
 
 @app.route('/add', methods=['POST'])
 def add():
@@ -58,16 +59,17 @@ def add():
         return json.dumps(ret)
     try:
         index.add_with_ids(vectors, ids)
-        ret['time_used'] =  round((time.time() - start) * 1000)
+        ret['time_used'] = round((time.time() - start) * 1000)
         ret['message'] = SEAERCH_ERR['add_success']
         ret['rtn'] = 0
-        logger.info('index total num: ', index.ntotal)
     except Exception as e:
         logger.error(e)
         ret['message'] = GLOBAL_ERR['unknow_err']
         ret['rtn'] = -3
     finally:
+        logger.info('faiss info: ', index.display())
         return json.dumps(ret)
+
 
 @app.route('/search', methods=['POST'])
 def search():
@@ -82,6 +84,7 @@ def search():
     except json.JSONDecodeError:
         logger.warning(GLOBAL_ERR['json_syntax_err'])
         ret['message'] = GLOBAL_ERR['json_syntax_err']
+        logger.info('faiss info: ', index.display())
         return json.dumps(ret)
     legal = check_param(set(data), necessary_params, set(default_params))
     if not legal:
@@ -94,12 +97,12 @@ def search():
         ret['rtn'] = -1
         ret['message'] = SEAERCH_ERR['len_err']
         return json.dumps(ret)
-    queries = np.array(data['queries'],  dtype=np.float32)
+    queries = np.array(data['queries'], dtype=np.float32)
     k = data['topk']
     try:
         distances, labels = index.search(queries, k)
         ret['results'] = {'distances': distances.tolist(), 'lables': labels.tolist()}
-        ret['time_used'] =  round((time.time() - start) * 1000)
+        ret['time_used'] = round((time.time() - start) * 1000)
         ret['rtn'] = 0
         ret['message'] = SEAERCH_ERR['search_success']
     except Exception as e:
@@ -107,7 +110,9 @@ def search():
         ret['message'] = GLOBAL_ERR['unknow_err']
         ret['rtn'] = -3
     finally:
+        logger.info('faiss info: ', index.display())
         return json.dumps(ret)
+
 
 @app.route('/del', methods=['POST'])
 def delete():
@@ -132,7 +137,7 @@ def delete():
     ids = np.array(data['ids'], dtype=np.int64)
     try:
         index.remove_ids(ids)
-        ret['time_used'] =  round((time.time() - start) * 1000)
+        ret['time_used'] = round((time.time() - start) * 1000)
         ret['message'] = SEAERCH_ERR['delete_success']
         ret['rtn'] = 0
     except Exception as e:
@@ -140,9 +145,18 @@ def delete():
         ret['message'] = GLOBAL_ERR['unknow_err']
         ret['rtn'] = -3
     finally:
+        logger.info('faiss info: ', index.display())
         return json.dumps(ret)
+
+
+@app.route('/reset', methods=['GET'])
+def reset():
+    start = time.time()
+    index.reset()
+    ret = {'rtn': 0, 'time_used': round((time.time() - start) * 1000), 'message': SEAERCH_ERR['reset_success']}
+    logger.info('faiss info: ', index.display())
+    return json.dumps(ret)
+
 
 if __name__ == '__main__':
     app.run(config['host'], config['port'])
-
-

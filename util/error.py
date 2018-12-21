@@ -8,6 +8,7 @@ SEAERCH_ERR = {
     'add_success': 'vectors added successfully',
     'search_success': 'search successfully',
     'delete_success': 'delete successfully',
+    'reset_success': 'reset successfully',
     'len_err': 'input total numbers are not consistent with input vectors',
     'dim_err': 'input vector has different dimension with system config'
 }

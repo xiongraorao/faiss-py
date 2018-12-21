@@ -148,6 +148,34 @@
 {"time_used": 0, "rtn": 0, "message": "delete successfully"}
 ```
 
+## 向量清空
+
+请求地址：http://localhost:2344/reset
+
+请求方式：get
+
+请求类型：application/json
+
+**输入参数：**
+
+空
+
+**返回参数：**
+
+返回类型：JSON
+
+| 参数名 | 类型 | 参数说明 |
+| :----: | :--: | :------: |
+| time_used | `Int` | 整个请求所花费的时间，单位为毫秒 |
+| rtn | `Int` | 返回值，0表示请求成功，非0表示失败 |
+| message | `String` | 请求结果描述信息 |
+
+返回示例：
+
+``` json
+{"time_used": 0, "rtn": 0, "message": "reset successfully"}
+```
+
 ## 常见错误代码
 
 | rtn | 说明 |
