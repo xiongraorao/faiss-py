@@ -178,6 +178,8 @@ def init_index():
     '''
     logger.info('==================================')
     logger.info('start initialize index')
+    if not os.path.exists(config['index_path']):
+        os.mkdir(config['index_path'])
     # load all index
     start = time.time()
     pattern = re.compile(r'index-.*?\.log')
