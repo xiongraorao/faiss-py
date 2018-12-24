@@ -1,7 +1,10 @@
+import os
 import time
 import faiss
 import numpy as np
 import json
+
+import re
 from flask import Flask, request
 
 from util.date import time_to_date
@@ -23,7 +26,6 @@ print('======== system config ========')
 index = faiss.IndexFlatIP(config['dim'])
 index = faiss.IndexIDMap(index)
 logger.info('is trained:', index.is_trained)
-
 
 @app.route('/add', methods=['POST'])
 def add():
@@ -59,6 +61,11 @@ def add():
         return json.dumps(ret)
     try:
         index.add_with_ids(vectors, ids)
+        date = time_to_date(time.time())[:10]
+        with open(os.path.join(config['index_path'], 'index-%s.log'%date), 'a+') as f:
+            for k,v in dict(zip(data['data']['ids'], data['data']['vectors'])).items():
+                data = {'id': k, 'vector': v, 'op': 'add'}
+                f.write(json.dumps(data)+'\n')
         ret['time_used'] = round((time.time() - start) * 1000)
         ret['message'] = SEAERCH_ERR['add_success']
         ret['rtn'] = 0
@@ -67,7 +74,7 @@ def add():
         ret['message'] = GLOBAL_ERR['unknow_err']
         ret['rtn'] = -3
     finally:
-        logger.info('faiss info: ', index.display())
+        logger.info('index total == > %d elements' % index.ntotal)
         return json.dumps(ret)
 
 
@@ -110,7 +117,7 @@ def search():
         ret['message'] = GLOBAL_ERR['unknow_err']
         ret['rtn'] = -3
     finally:
-        logger.info('faiss info: ', index.display())
+        logger.info('index total == > %d elements' % index.ntotal)
         return json.dumps(ret)
 
 
@@ -137,6 +144,11 @@ def delete():
     ids = np.array(data['ids'], dtype=np.int64)
     try:
         index.remove_ids(ids)
+        date = time_to_date(time.time())[:10]
+        with open(os.path.join(config['index_path'], 'index-%s.log'%date), 'a+') as f:
+            for id in data['ids']:
+                data = {'id': id, 'op': 'rm'}
+                f.write(json.dumps(data)+'\n')
         ret['time_used'] = round((time.time() - start) * 1000)
         ret['message'] = SEAERCH_ERR['delete_success']
         ret['rtn'] = 0
@@ -145,7 +157,7 @@ def delete():
         ret['message'] = GLOBAL_ERR['unknow_err']
         ret['rtn'] = -3
     finally:
-        logger.info('faiss info: ', index.display())
+        logger.info('index total == > %d elements' % index.ntotal)
         return json.dumps(ret)
 
 
@@ -154,9 +166,47 @@ def reset():
     start = time.time()
     index.reset()
     ret = {'rtn': 0, 'time_used': round((time.time() - start) * 1000), 'message': SEAERCH_ERR['reset_success']}
-    logger.info('faiss info: ', index.display())
+    logger.info('index total == > %d elements' % index.ntotal)
     return json.dumps(ret)
 
+def init_index():
+    '''
+    每个文件索引格式：
+    {"id": 123, "vector": [xxx], "op":"add"}
+    {"id": 123, "op":"rm"}
+    :return:
+    '''
+    logger.info('==================================')
+    logger.info('start initialize index')
+    # load all index
+    start = time.time()
+    pattern = re.compile(r'index-.*?\.log')
+    for index_file in os.listdir(config['index_path']):
+        match = pattern.match(index_file)
+        add_ids = []
+        add_vectors = []
+        rm_ids = []
+        if match:
+            logger.info('load index, file = %s'%match.group())
+            for line in open(os.path.join(config['index_path'], match.group()), 'r'):
+                data = json.loads(line[:-1])
+                if data['op'] == 'add':
+                    add_ids.append(data['id'])
+                    add_vectors.append(data['vector'])
+                elif data['op'] == 'rm':
+                    rm_ids.append(data['id'])
+            add_ids = np.array(add_ids, dtype=np.int64)
+            add_vectors = np.array(add_vectors, dtype=np.float32)
+            rm_ids = np.array(rm_ids, dtype=np.int64)
+            index.add_with_ids(add_vectors, add_ids)
+            index.remove_ids(rm_ids)
+            logger.info('index total == > %d elements' % index.ntotal)
+    logger.info('index initialize successfully')
+    logger.info('index total == > %d elements' % index.ntotal)
+    logger.info('index load cost time: %d ms' % round((time.time() - start) * 1000))
+    logger.info('==================================')
 
 if __name__ == '__main__':
+    # 根据日志重建索引
+    init_index()
     app.run(config['host'], config['port'])
