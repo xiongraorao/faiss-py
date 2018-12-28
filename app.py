@@ -5,7 +5,7 @@ import numpy as np
 import json
 
 import re
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 
 from util.date import time_to_date
 from util.error import *
@@ -17,15 +17,16 @@ logger = Log('app')
 config = {}
 with open('config.json') as f:
     config = json.load(f)
-print('======== system config ========')
+logger.info('======== system config ========')
 for key, value in config.items():
     logger.info(key, ":", value)
 logger.info('system start time: ', time_to_date(time.time()))
-print('======== system config ========')
-
 index = faiss.IndexFlatIP(config['dim'])
 index = faiss.IndexIDMap(index)
 logger.info('is trained:', index.is_trained)
+logger.info('======== system config ========')
+
+re_date = '^([0-9]{3}[1-9]|[0-9]{2}[1-9][0-9]{1}|[0-9]{1}[1-9][0-9]{2}|[1-9][0-9]{3})-(((0[13578]|1[02])-(0[1-9]|[12][0-9]|3[01]))|((0[469]|11)-(0[1-9]|[12][0-9]|30))|(02-(0[1-9]|[1][0-9]|2[0-8])))$'
 
 @app.route('/add', methods=['POST'])
 def add():
@@ -169,6 +170,24 @@ def reset():
     logger.info('index total == > %d elements' % index.ntotal)
     return json.dumps(ret)
 
+@app.route('/feature', methods=['GET'])
+def feature():
+    start = time.time()
+    date = request.args.get('date')
+    # 读取当天的索引文件
+    if re.match(re_date, date) is None:
+        logger.warning('input value is illegal')
+        ret = {'rtn': -1, 'time_used': 0, 'message': GLOBAL_ERR['value_err']}
+        logger.info('feature api result: ', ret)
+        return '-1'
+    else:
+        # 下载文件
+        file = os.path.join(config['index_path'], 'index-%s.log' % date)
+        print(file)
+        ret = {'rtn': 0, 'time_used': round((time.time() - start) * 1000), 'message': SEAERCH_ERR['feature_success']}
+        logger.info('feature api result: ', ret)
+        return send_from_directory(config['index_path'] + os.path.sep, 'index-%s.log' % date, as_attachment=True)
+
 def init_index():
     '''
     每个文件索引格式：
@@ -176,13 +195,13 @@ def init_index():
     {"id": 123, "op":"rm"}
     :return:
     '''
-    logger.info('==================================')
+    logger.info('========= load index ==========')
     logger.info('start initialize index')
     if not os.path.exists(config['index_path']):
         os.mkdir(config['index_path'])
     # load all index
     start = time.time()
-    pattern = re.compile(r'index-.*?\.log')
+    pattern = re.compile(r'^index-\d{4}-\d{2}-\d{2}\.log$')
     for index_file in os.listdir(config['index_path']):
         match = pattern.match(index_file)
         add_ids = []
@@ -206,7 +225,7 @@ def init_index():
     logger.info('index initialize successfully')
     logger.info('index total == > %d elements' % index.ntotal)
     logger.info('index load cost time: %d ms' % round((time.time() - start) * 1000))
-    logger.info('==================================')
+    logger.info('========= load index ==========')
 
 if __name__ == '__main__':
     # 根据日志重建索引
