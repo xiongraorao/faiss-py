@@ -34,8 +34,8 @@ def reset():
     print(response.json())
 
 def feature():
-    url = base_url + '/feature'
-    response = requests.get(url, params={'date': '2018-1s2-26'})
+    url = base_url + '/vector'
+    response = requests.get(url, params={'date': '2018-12-26'})
     datas = response.content.decode('utf-8').strip().split('\n') # 读取文件的每一行
     print('data len: ', len(datas))
     print(response.text == '-1')# return -1 表示参数错误

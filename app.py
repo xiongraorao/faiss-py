@@ -170,7 +170,7 @@ def reset():
     logger.info('index total == > %d elements' % index.ntotal)
     return json.dumps(ret)
 
-@app.route('/feature', methods=['GET'])
+@app.route('/vector', methods=['GET'])
 def feature():
     start = time.time()
     date = request.args.get('date')
@@ -178,14 +178,14 @@ def feature():
     if re.match(re_date, date) is None:
         logger.warning('input value is illegal')
         ret = {'rtn': -1, 'time_used': 0, 'message': GLOBAL_ERR['value_err']}
-        logger.info('feature api result: ', ret)
+        logger.info('vector api result: ', ret)
         return '-1'
     else:
         # 下载文件
         file = os.path.join(config['index_path'], 'index-%s.log' % date)
         print(file)
-        ret = {'rtn': 0, 'time_used': round((time.time() - start) * 1000), 'message': SEAERCH_ERR['feature_success']}
-        logger.info('feature api result: ', ret)
+        ret = {'rtn': 0, 'time_used': round((time.time() - start) * 1000), 'message': SEAERCH_ERR['vector_success']}
+        logger.info('vector api result: ', ret)
         return send_from_directory(config['index_path'] + os.path.sep, 'index-%s.log' % date, as_attachment=True)
 
 def init_index():

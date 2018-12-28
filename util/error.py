@@ -10,7 +10,7 @@ SEAERCH_ERR = {
     'search_success': 'search successfully',
     'delete_success': 'delete successfully',
     'reset_success': 'reset successfully',
-    'feature_success': 'get feature successfully',
+    'vector_success': 'get vectors successfully',
     'len_err': 'input total numbers are not consistent with input vectors',
     'dim_err': 'input vector has different dimension with system config'
 }
