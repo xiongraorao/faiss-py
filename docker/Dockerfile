@@ -11,7 +11,7 @@ RUN apt update -y \
 
 COPY miniconda3.tar.gz $HOME
 
-RUN tar -xvzf miniconda3.tar.gz
+RUN tar -xvzf miniconda3.tar.gz && rm miniconda3.tar.gz
 
 RUN git clone https://github.com/xiongraorao/faiss-py.git
 
