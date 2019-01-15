@@ -15,7 +15,7 @@ RUN tar -xvzf miniconda3.tar.gz && rm miniconda3.tar.gz
 
 RUN git clone https://github.com/xiongraorao/faiss-py.git
 
-VOLUME ["$HOME/faiss-py/logs/"]
+VOLUME ["$HOME/faiss-py/index/"]
 
 EXPOSE 2344
 

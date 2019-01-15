@@ -13,7 +13,7 @@ from util.http import check_param, update_param
 from util.logger import Log
 
 app = Flask(__name__)
-logger = Log('app')
+logger = Log('app', 'index/')
 config = {}
 with open('config.json') as f:
     config = json.load(f)
