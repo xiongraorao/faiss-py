@@ -183,7 +183,11 @@ def feature():
     else:
         # 下载文件
         file = os.path.join(config['index_path'], 'index-%s.log' % date)
-        print(file)
+        if os.path.exists(file):
+            logger.info('download file: ', file)
+        else:
+            logger.warning('file: %s == is not exists', file)
+            return '-1'
         ret = {'rtn': 0, 'time_used': round((time.time() - start) * 1000), 'message': SEAERCH_ERR['vector_success']}
         logger.info('vector api result: ', ret)
         return send_from_directory(config['index_path'] + os.path.sep, 'index-%s.log' % date, as_attachment=True)
