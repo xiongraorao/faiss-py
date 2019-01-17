@@ -1,10 +1,12 @@
-FROM ubuntu:16.04
+FROM debian:stretch-slim
 
 ENV TZ=Asia/Shanghai HOME=/home/app
 
 WORKDIR $HOME
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+COPY sources.list /etc/apt/sources.list
 
 RUN apt update -y \
     && apt install -y git
