@@ -176,6 +176,27 @@
 {"time_used": 0, "rtn": 0, "message": "reset successfully"}
 ```
 
+## 批量获取向量
+
+请求地址：http://localhost:2344/vector
+
+请求方式：get
+
+请求类型：application/json
+
+
+**输入参数：**
+
+| 是否必选 | 参数名 | 类型 | 参数说明 |
+| :------: | :----: | :--: | :------: |
+| 必选 | date | `string` | 需要读取哪一天的所有向量，eg. "2019-01-17" |
+
+**返回参数：**
+
+返回类型：bytes[]
+
+返回索引文件的bytes数组
+
 ## 常见错误代码
 
 | rtn | 说明 |
